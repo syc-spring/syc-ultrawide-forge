@@ -201,7 +201,7 @@ ultrawide-forge/
 
 ### 5.3 AI 编程工具使用情况
 
-本项目开发过程中使用了 AI 编程工具 **Claude Code**(Anthropic CLI),具体分工如下:
+本项目开发过程中借助 AI 编程工具 **Claude Code**(CLI)完成,接入的底层模型为 **GLM-5.3**(智谱 AI),具体分工如下:
 
 | 环节 | AI 参与 | 人工参与 |
 |---|---|---|
