@@ -88,7 +88,7 @@ async def run_job(job: Job) -> None:
         # ---------- 3. Tile 2..N:编辑续画 ----------
         for k in range(1, geo["n_tiles"]):
             ev(type="tile_start", i=k, stage="edit", message=f"Tile {k + 1}/{geo['n_tiles']}(续画)")
-            canvas = stitcher.build_edit_canvas(accumulated, geo["tile_w"], geo["overlap_px"])
+            canvas = stitcher.build_edit_canvas(accumulated, geo["tile_w"], geo["overlap_px"], fill=settings.edit_fill)
             edited = await asyncio.to_thread(provider.edit, plans[k]["prompt"], canvas.convert("RGB"), size)
             new_tile = stitcher.resize_to(edited, geo["tile_w"], geo["tile_h"])
             new_tile = stitcher.match_color(new_tile, accumulated, geo["overlap_px"])

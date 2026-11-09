@@ -23,10 +23,12 @@ class Settings:
     image_quality: str = os.getenv("IMAGE_QUALITY", "high")
 
     # 生成策略
-    tile_width: int = int(os.getenv("TILE_WIDTH", "3072"))
-    tile_height: int = int(os.getenv("TILE_HEIGHT", "1024"))
+    tile_width: int = int(os.getenv("TILE_WIDTH", "2172"))
+    tile_height: int = int(os.getenv("TILE_HEIGHT", "724"))
     overlap_ratio: float = float(os.getenv("OVERLAP_RATIO", "0.25"))
     color_match: bool = _bool("COLOR_MATCH", True)
+    # 编辑画布待填区填充:white(兼容性最好)/ transparent(官方 gpt-image 外绘语义)/ mirror(镜像低频提示)
+    edit_fill: str = os.getenv("EDIT_FILL", "white")
 
     # LLM 分镜规划(可选)
     planner_model: str = os.getenv("PLANNER_MODEL", "")
