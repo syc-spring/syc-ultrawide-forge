@@ -1,0 +1,11 @@
+# 敏感信息
+.env
+
+# 运行产物
+results/
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+
+# 不含线上生成的临时结果;samples/ 中的案例会显式提交

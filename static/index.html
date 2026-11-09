@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UltrawideForge · 超宽画卷生成器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@600;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 顶部仪表条 -->
+<header class="masthead">
+  <div class="brand">
+    <span class="brand-mark"></span>
+    <h1>超宽画卷<span class="brand-en">ULTRAWIDE&nbsp;FORGE</span></h1>
+  </div>
+  <p class="tagline">突破单次生成 3:1 上限 · 滚动外绘 × 接缝融合</p>
+  <div class="status-chips" id="status-chips"></div>
+</header>
+
+<main class="layout">
+
+  <!-- ════════ 左侧:控制台 ════════ -->
+  <section class="panel controls" style="--d:0">
+    <h2 class="panel-title">① 画面描述</h2>
+    <textarea id="prompt" rows="4" maxlength="2000" placeholder="描述你想要的超宽画面,例如:黄昏时分的城市天际线,从江畔老城一直延伸到新区摩天楼,华灯初上…"></textarea>
+    <div class="chips" id="prompt-presets">
+      <button class="chip" data-prompt="黄昏城市天际线全景,从江畔老城区一直延伸到现代金融区,华灯初上,暖金色天空渐变到蓝调时刻">黄昏城市天际线</button>
+      <button class="chip" data-prompt="连绵雪山山脉全景,清晨第一缕阳光照亮雪峰,山脚湖泊倒影,云海翻涌,从黎明蓝调渐变到金色日出">雪山日出</button>
+      <button class="chip" data-prompt="科幻太空站内部走廊全景,左侧是观景舷窗看地球,右侧是控制舱与休眠舱,冷色调霓虹灯光">科幻空间站</button>
+      <button class="chip" data-prompt="国潮风格电商大促横幅背景,从左到右依次呈现舞狮、灯笼阵列、锦鲤跃门与烟花,红金配色,扁平插画">国潮大促横幅</button>
+    </div>
+
+    <h2 class="panel-title">② 目标比例</h2>
+    <div class="ratio-grid" id="ratio-grid"></div>
+    <div class="custom-ratio">
+      <label for="ratio-custom">自定义</label>
+      <input id="ratio-custom" type="text" placeholder="如 21:9 或 10:1" spellcheck="false">
+      <span class="hint">宽 : 高</span>
+    </div>
+
+    <h2 class="panel-title">③ 输出高度</h2>
+    <div class="seg" id="height-seg">
+      <button data-h="512">512</button>
+      <button data-h="768">768</button>
+      <button data-h="1024" class="on">1024</button>
+      <button data-h="1536">1536</button>
+    </div>
+
+    <!-- 工程读数:估算 tile 数与调用次数 -->
+    <div class="estimate" id="estimate"></div>
+
+    <button id="btn-generate" class="generate">
+      <span class="generate-label">开始生成</span>
+      <span class="generate-sub" id="btn-sub">rolling outpainting</span>
+    </button>
+    <p class="footnote" id="footnote">图 1 文生图起步 · 其余各块以上块右缘为锚续画 · 重叠区线性羽化拼接</p>
+  </section>
+
+  <!-- ════════ 右侧:灯台 / 结果舞台 ════════ -->
+  <section class="stage" style="--d:1">
+
+    <!-- 空态:算法图解 -->
+    <div class="empty" id="empty">
+      <div class="empty-head">
+        <h2>灯台待命中</h2>
+        <p>单次 Image API 的宽高比上限约 <b>3:1</b>。本服务把它拆成多块「胶片」,逐块显影后拼接成 <b>6:1、8:1</b> 乃至更宽的完整画卷。</p>
+      </div>
+      <div class="diagram" aria-hidden="true">
+        <div class="d-row">
+          <div class="d-tile t1">Tile 1<br><i>文生图</i></div>
+          <div class="d-tile t2">Tile 2<br><i>锚定续画</i></div>
+          <div class="d-tile t3">Tile 3<br><i>锚定续画</i></div>
+          <div class="d-tile t4">Tile 4<br><i>锚定续画</i></div>
+        </div>
+        <div class="d-arrow"></div>
+        <div class="d-final"><span>8 : 1 全景输出</span></div>
+        <p class="d-note">重叠区约 25%,cross-fade 羽化消除接缝;逐块色彩迁移抑制色调漂移</p>
+      </div>
+    </div>
+
+    <!-- 生成中:胶片条 + 日志 -->
+    <div class="progress hidden" id="progress">
+      <div class="progress-head">
+        <span class="rec-dot" id="rec-dot"></span>
+        <span id="progress-label">等待规划…</span>
+        <span class="mono dim" id="progress-elapsed">0.0s</span>
+      </div>
+      <div class="filmstrip" id="filmstrip"></div>
+      <div class="beats hidden" id="beats"></div>
+      <pre class="log" id="log"></pre>
+    </div>
+
+    <!-- 结果:全景查看器 -->
+    <div class="result hidden" id="result">
+      <div class="result-bar">
+        <span id="result-dims" class="mono"></span>
+        <span class="spacer"></span>
+        <button class="tool" id="btn-guides" title="标记拼接缝位置,便于检查">接缝检查</button>
+        <button class="tool" id="btn-raw">原图新窗口</button>
+        <a class="tool" id="btn-download" download="ultrawide.png">下载 PNG</a>
+      </div>
+      <div class="panwrap" id="panwrap">
+        <img id="pan-img" alt="生成的超宽全景图" draggable="false">
+        <div class="guides" id="guides"></div>
+        <div class="pan-hint">← 拖拽平移 · 滚轮横向滚动 →</div>
+      </div>
+      <div class="minimap"><div class="minimap-view" id="minimap-view"></div></div>
+    </div>
+
+    <!-- 历史与样例 -->
+    <div class="shelf" id="shelf">
+      <div class="shelf-tabs">
+        <button class="tab on" data-tab="history">最近生成</button>
+        <button class="tab" data-tab="samples">案例集</button>
+      </div>
+      <div class="shelf-body" id="shelf-body"></div>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
